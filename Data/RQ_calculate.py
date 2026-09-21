@@ -245,15 +245,16 @@ def kappa():
     # 10. Width Contraction Decrease in horizontal dimension
     # 11. Component Removal Deletion of an existing element from the UI structure
     # 12. Component Addition Insertion of a new element into the UI structure
-
-    A_code = [1]*14       + [2]*5 + [5]*9 + [7]*11 + [8]*3 + [9]*11       + [11]* 6 + [12]*37
-    B_code = [1]*13 + [4] + [2]*5 + [5]*9 + [7]*11 + [8]*3 + [9]*10 + [8] + [11]* 6 + [12]*37
-
-    print("code-changed UI elements:")
+    
+    
+    A_code = [1]*14       + [2]*5 + [5]*11 + [7]*11 + [8]*3 + [9]*20       + [10]*3 + [11]* 7 + [12]*37
+    B_code = [1]*13 + [4] + [2]*5 + [5]*11 + [7]*11 + [8]*3 + [9]*19 + [8] + [10]*3 + [11]* 7 + [12]*37
+    
+    print("code-changed")
     print(cohen_kappa_score(A_code, B_code))
-
-    A_target = [0] + [0]*3 + [3]*21 + [4]*34 + [5]*14 + [6]*18 + [9] + [12]
-    B_target = [9] + [4]*3 + [3]*21 + [4]*34 + [5]*14 + [6]*18 + [9] + [12]
+    
+    A_target = [0] + [0]*3 + [3]*23 + [4]*34 + [5]*21 + [6]*20 + [9]*3 + [12]
+    B_target = [9] + [4]*3 + [3]*23 + [4]*34 + [5]*21 + [6]*20 + [9]*3 + [12]
 
     print("target UI elements:")
     print(cohen_kappa_score(A_target, B_target))
@@ -287,16 +288,3 @@ def parent_child(path, name):
     print("indirect change cases:")
     print(len(unique_indirect_pairs))
     
-    
-
-RQ2("./Glados/glados.xlsx")
-RQ2("./Timeoff/timeoff.xlsx")
-
-RQ3("./Glados/glados.xlsx", name="glados")
-RQ3("./Timeoff/timeoff.xlsx", name="timeoff")
-
-kappa()
-    
-parent_child("./Glados/glados.xlsx", "glados")
-parent_child("./Timeoff/timeoff.xlsx", "timeoff")
-# Timeoff: 4 "Other" cases identified
