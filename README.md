@@ -40,9 +40,10 @@ docker run --name wol-server-instance `
   -d woltool:latest
 ```
 
-### 3. Selenium WebDriver Configuration
-To integrate the tool with selenium-webdriver, use the following configuration to ensure the browser extension is loaded correctly:
+### 3. Browser Configuration
+To integrate the tool and ensure the browser extension is loaded correctly during test execution, you can use either Selenium WebDriver or Playwright. Configure your chosen framework as follows:
 
+#### 3.1 Selenium WebDriver
 ```JavaScript
 const { Builder } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
@@ -58,6 +59,22 @@ const webdriver = new Builder()
     .forBrowser('chrome')
     .setChromeOptions(options)
     .build();
+```
+#### 3.2 Playwright
+```javascript
+const { chromium } = require('playwright');
+const path = require('path');
+const extensionPath = path.resolve(__dirname, './LogReaderExtention');
+const context = await chromium.launchPersistentContext('', {
+  headless: false, // Extensions require headed mode or '--headless=new'
+  args: [
+    '--disable-web-security',
+    `--disable-extensions-except=${extensionPath}`,
+    `--load-extension=${extensionPath}`,
+    `--headless=new`,
+  ],
+});
+const page = await context.newPage();
 ```
 
 ### 4. Executing the UI Tests
