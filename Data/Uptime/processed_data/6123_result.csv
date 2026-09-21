@@ -1,0 +1,17 @@
+test_name,total_move_distance,total_scroll_distance,total_click_count,total_input_count,test_result,Commit Number
+Example Spec | dashboard,847.3237595050846,0.0,2,13,pass,6123
+Example Spec | database is reset after previous test,847.3237595050846,0.0,2,13,pass,6123
+Example Spec | set up monitor,847.3237595050846,0.0,2,13,failed,6123
+Friendly Name Tests | URL hostname,1195.4214469435392,0.0,3,37,pass,6123
+Friendly Name Tests | custom friendly name,1195.4214469435392,0.0,3,52,pass,6123
+Friendly Name Tests | default friendly name,1195.4214469435392,0.0,3,13,pass,6123
+Friendly Name Tests | hostname,1195.4214469435392,0.0,3,24,pass,6123
+Monitor Form | condition ui,1648.7198023928324,536.0,6,13,pass,6123
+Monitor Form | failing condition,1424.5651483444801,424.0,5,56,pass,6123
+Monitor Form | successful condition,1634.6185637020521,879.0,6,74,pass,6123
+Status Page | create and edit,847.3237595050846,0.0,2,13,failed,6123
+Uptime Kuma Setup | login,847.3237595050846,0.0,2,13,pass,6123
+Uptime Kuma Setup | logout,1506.6036697101508,0.0,3,13,pass,6123
+Uptime Kuma Setup | setup admin,932.988210721923,0.0,2,21,pass,6123
+Uptime Kuma Setup | setup sqlite,1033.6577811283244,0.0,3,0,pass,6123
+Uptime Kuma Setup | take sqlite snapshot,0.0,0.0,0,0,pass,6123

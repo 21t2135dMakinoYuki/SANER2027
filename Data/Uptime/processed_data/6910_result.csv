@@ -1,0 +1,28 @@
+test_name,total_move_distance,total_scroll_distance,total_click_count,total_input_count,test_result,Commit Number
+Domain Expiry Notification | manual uncheck preserved when URL changes within same TLD,1032.5425490486944,724.0,3,66,pass,6910
+Domain Expiry Notification | supported TLD auto-enables checkbox,847.3237595050846,0.0,2,32,pass,6910
+Domain Expiry Notification | switching from supported to unsupported TLD disables checkbox,847.3237595050846,0.0,2,50,pass,6910
+Domain Expiry Notification | switching from unsupported to supported TLD enables checkbox,847.3237595050846,0.0,2,50,pass,6910
+Domain Expiry Notification | unsupported TLD leaves checkbox disabled,847.3237595050846,0.0,2,31,pass,6910
+Example Spec | dashboard,847.3237595050846,0.0,2,13,pass,6910
+Example Spec | database is reset after previous test,847.3237595050846,0.0,2,13,pass,6910
+Example Spec | set up monitor,847.3237595050846,0.0,2,13,failed,6910
+Friendly Name Tests | URL hostname,1200.6224999500514,0.0,3,37,pass,6910
+Friendly Name Tests | custom friendly name,1200.6224999500514,0.0,3,52,pass,6910
+Friendly Name Tests | default friendly name,1200.6224999500514,0.0,3,13,pass,6910
+Friendly Name Tests | hostname,1200.6224999500514,0.0,3,24,pass,6910
+Incident History | active pinned incidents are shown at top and not in past incidents,847.3237595050846,0.0,2,13,failed,6910
+Incident History | incident history pagination loads more incidents,847.3237595050846,0.0,2,13,failed,6910
+Incident History | past incidents section is hidden when no incidents exist,847.3237595050846,0.0,2,13,failed,6910
+Incident History | resolved incidents appear in past incidents section,847.3237595050846,0.0,2,13,failed,6910
+Monitor Form | condition ui,1654.0539370288072,536.0,6,13,pass,6910
+Monitor Form | failing condition,1428.2262038957706,424.0,5,53,pass,6910
+Monitor Form | save response settings persist,847.3237595050846,0.0,2,13,failed,6910
+Monitor Form | successful condition,847.3237595050846,0.0,2,13,failed,6910
+Status Page | RSS feed escapes malicious monitor names,847.3237595050846,0.0,2,13,failed,6910
+Status Page | create and edit,847.3237595050846,0.0,2,13,failed,6910
+Uptime Kuma Setup | login,847.3237595050846,0.0,2,13,pass,6910
+Uptime Kuma Setup | logout,1506.6036697101508,0.0,3,13,pass,6910
+Uptime Kuma Setup | setup admin,932.988210721923,0.0,2,21,pass,6910
+Uptime Kuma Setup | setup sqlite,1033.6577811283244,0.0,3,0,pass,6910
+Uptime Kuma Setup | take sqlite snapshot,0.0,0.0,0,0,pass,6910

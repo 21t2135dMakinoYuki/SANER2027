@@ -1,0 +1,6 @@
+test_name,total_move_distance,total_scroll_distance,total_click_count,total_input_count,test_result,Commit Number
+Uptime Kuma Setup | login,0.0,0.0,0,0,failed,6815
+Uptime Kuma Setup | logout,0.0,0.0,0,0,failed,6815
+Uptime Kuma Setup | setup admin,0.0,0.0,0,0,failed,6815
+Uptime Kuma Setup | setup sqlite,830.0632506020249,0.0,2,0,failed,6815
+Uptime Kuma Setup | take sqlite snapshot,0.0,0.0,0,0,pass,6815

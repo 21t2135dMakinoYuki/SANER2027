@@ -1,0 +1,29 @@
+test_name,total_move_distance,total_scroll_distance,total_click_count,total_input_count,test_result,Commit Number
+"As a guest, create a call, share link and other join",894.0939729582108,0.0,3,14,failed,6853
+Bug new joiner was not publishing on correct SFU,2820.858276935435,0.0,8,62,failed,6853
+Create and join a group call,1317.5603819618636,0.0,10,155,failed,6853
+Decline a new video call in DM as widget,2820.858276935435,0.0,8,64,failed,6853
+Error when pre-warming the focus are caught by the ErrorBoundary,908.0939729582108,0.0,4,17,pass,6853
+Footer interaction in PiP,2364.8701821268496,0.0,7,39,failed,6853
+Landing page,0.0,0.0,0,0,pass,6853
+One to One call using matrix rtc 2.0 aka sticky events,894.0939729582108,0.0,3,15,failed,6853
+One to One rejoin after improper leave does not crash EC,3402.856909388015,0.0,10,15,failed,6853
+Put call in PIP,2820.858276935435,0.0,8,60,failed,6853
+Sharing screen in group call,902.7881553121034,0.0,6,88,failed,6853
+Should automatically retry non fatal JWT errors,908.0939729582108,0.0,4,17,failed,6853
+Should request JWT token before starting the call,1481.578933528233,0.0,5,17,pass,6853
+Should show error screen if call creation is restricted,908.0939729582108,0.0,4,17,pass,6853
+Should show error screen if fails to get JWT token,908.0939729582108,0.0,4,17,pass,6853
+"Sign up a new account, then login, then logout",1722.961982552809,0.0,5,46,failed,6853
+Start a new call as widget,2688.858276935435,0.0,7,64,failed,6853
+Start a new call then leave and show the feedback screen,894.0939729582108,0.0,3,17,failed,6853
+Start a new video call in DM as widget,2194.0441704267378,0.0,6,64,failed,6853
+Start a new voice call in DM as widget,2194.0441704267378,0.0,6,64,failed,6853
+Test federated call with rtc modes compat and compat,3510.1764191165967,0.0,14,119,failed,6853
+Test federated call with rtc modes compat and legacy,4188.948645766357,0.0,14,119,failed,6853
+Test federated call with rtc modes legacy and compat,902.7881553121034,0.0,4,61,failed,6853
+Test federated call with rtc modes legacy and legacy,3510.1764191165967,0.0,14,119,failed,6853
+Test swapping publisher from https://app.m.localhost/#/welcome to https://app.othersite.m.localhost/#/welcome,2820.858276935435,0.0,8,62,failed,6853
+"When creator left, avoid reconnect to the same SFU",894.0939729582108,0.0,3,14,failed,6853
+can only interact with header and footer while reconnecting,894.0939729582108,0.0,3,18,failed,6853
+has title,0.0,0.0,0,0,pass,6853

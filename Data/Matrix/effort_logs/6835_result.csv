@@ -1,0 +1,28 @@
+test_name,total_move_distance,total_scroll_distance,total_click_count,total_input_count,test_result,Commit Number
+"As a guest, create a call, share link and other join",894.0939729582108,0.0,3,14,failed,6835
+Bug new joiner was not publishing on correct SFU,5105.951434493425,0.0,16,142,failed,6835
+Create and join a group call,1052.6414543846827,0.0,4,42,failed,6835
+Decline a new video call in DM as widget,2187.791719824848,0.0,9,86,failed,6835
+Error when pre-warming the focus are caught by the ErrorBoundary,908.0939729582108,0.0,4,17,pass,6835
+Footer interaction in PiP,3769.786490214059,0.0,12,59,failed,6835
+Landing page,0.0,0.0,0,0,pass,6835
+One to One call using matrix rtc 2.0 aka sticky events,894.0939729582108,0.0,3,15,failed,6835
+One to One rejoin after improper leave does not crash EC,894.0939729582108,0.0,3,15,failed,6835
+Put call in PIP,5105.951434493425,0.0,16,129,failed,6835
+Sharing screen in group call,6241.10169993359,0.0,21,211,failed,6835
+Should automatically retry non fatal JWT errors,908.0939729582108,0.0,4,17,pass,6835
+Should request JWT token before starting the call,1481.578933528233,0.0,5,17,pass,6835
+Should show error screen if fails to get JWT token,908.0939729582108,0.0,4,17,pass,6835
+"Sign up a new account, then login, then logout",1722.961982552809,0.0,5,46,failed,6835
+Start a new call as widget,2187.791719824848,0.0,9,86,failed,6835
+Start a new call then leave and show the feedback screen,2042.233642960854,0.0,6,17,pass,6835
+Start a new video call in DM as widget,2187.791719824848,0.0,9,86,failed,6835
+Start a new voice call in DM as widget,2071.026999125486,0.0,8,86,failed,6835
+Test federated call with rtc modes compat and compat,2187.791719824848,0.0,9,84,failed,6835
+Test federated call with rtc modes compat and legacy,2187.791719824848,0.0,9,84,failed,6835
+Test federated call with rtc modes legacy and compat,2187.791719824848,0.0,9,84,failed,6835
+Test federated call with rtc modes legacy and legacy,2187.791719824848,0.0,9,84,failed,6835
+Test swapping publisher from https://app.m.localhost/#/welcome to https://app.othersite.m.localhost/#/welcome,1052.6414543846827,0.0,4,44,failed,6835
+"When creator left, avoid reconnect to the same SFU",894.0939729582108,0.0,3,14,failed,6835
+can only interact with header and footer while reconnecting,894.0939729582108,0.0,3,18,failed,6835
+has title,0.0,0.0,0,0,pass,6835
