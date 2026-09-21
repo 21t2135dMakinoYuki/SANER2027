@@ -79,7 +79,7 @@ def RQ3(path, name):
                 "target_changes": set()
             }
         
-        if name=="glados":
+        if name=="glados" or name=="autocannon-ui" or name=="uptime-kuma" or name=="monconvertisseurco2" or name=="matrix" or name=="uptime":
             for cc in [row[15], row[16], row[18], row[19]]:
                 if cc in categories:
                     aggregated_data[key]["code_changes"].add(cc)
