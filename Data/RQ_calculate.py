@@ -33,9 +33,9 @@ def RQ2(path):
 
         all_result.add(commit_number)
 
-    unique_all_result = list({s.split('-')[1] for s in all_result})
-    unique_increase_result = list({s.split('-')[1] for s in increase_result})
-    unique_decrease_result = list({s.split('-')[1] for s in decrease_result})
+    unique_all_result = list({s.split('-')[0] for s in all_result})
+    unique_increase_result = list({s.split('-')[0] for s in increase_result})
+    unique_decrease_result = list({s.split('-')[0] for s in decrease_result})
 
     print("RQ2:")
     print("Decreased:" + str(len(unique_decrease_result)))
@@ -46,103 +46,175 @@ def RQ2(path):
     print(unique_all_result)
     
 
-def RQ3(path, name):
-    categories = ["Text Expansion","Text Contraction",
-        "Upward Shift", "Downward Shift", "Leftward Shift", "Rightward Shift", "Height Expansion", "Height Contraction", "Width Expansion", "Width Contraction",
-        "Component Removal", "Component Addition", "Other"
-    ]
+def RQ3(paths, names):
+  categories = [
+      "Text Expansion",
+      "Text Contraction",
+      "Upward Shift",
+      "Downward Shift",
+      "Leftward Shift",
+      "Rightward Shift",
+      "Height Expansion",
+      "Height Contraction",
+      "Width Expansion",
+      "Width Contraction",
+      "Component Removal",
+      "Component Addition",
+      "Other",
+  ]
 
-    aggregated_data = {}
-    
+  aggregated_data = {}
+
+  for path, name in zip(paths, names):
     wb = load_workbook(path, data_only=True, read_only=True)
-    ws = wb["result"]  
-    
-    for row in ws.iter_rows(values_only=True):
-        test_name = row[0]
-        effort = row[1]  
-        commit_number = row[2]
-        change = row[6]
-        UI_change_only = row[11]
-        
-        if UI_change_only == 0:
-            continue
-        
-        if effort != "cursor_travel_distance":
-            continue
-        
-        key = (commit_number, test_name)
-        
-        if key not in aggregated_data:
-            aggregated_data[key] = {
-                "direction": change,
-                "code_changes": set(),
-                "target_changes": set()
-            }
-        
-        if name=="glados" or name=="autocannon-ui" or name=="uptime-kuma" or name=="monconvertisseurco2" or name=="matrix" or name=="uptime":
-            for cc in [row[15], row[16], row[18], row[19]]:
-                if cc in categories:
-                    aggregated_data[key]["code_changes"].add(cc)
-            for tc in [row[12], row[13]]:
-                if tc in categories:
-                    aggregated_data[key]["target_changes"].add(tc)
-        elif name=="timeoff":
-            for cc in [row[16], row[17], row[19], row[20], row[22], row[23]]:
-                if cc in categories:
-                    aggregated_data[key]["code_changes"].add(cc)
-            for tc in [row[12], row[13], row[14]]:
-                if tc in categories:
-                    aggregated_data[key]["target_changes"].add(tc)
+    ws = wb["result"]
 
-    flow_code_target = {}
-    flow_target_dir = {}
+    for row in ws.iter_rows(values_only=True):
+      test_name = row[0]
+      effort = row[1]
+      raw_commit = row[2]
+      change = row[6]
+      UI_change_only = row[11]
+
+      if UI_change_only == 0 or effort != "cursor_travel_distance":
+        continue
+    
+      if raw_commit is not None:
+        commit_number = str(raw_commit).split("-")[0].strip()
+      else:
+        commit_number = ""
+        
+      key = (name, commit_number, change)
+
+      if key not in aggregated_data:
+        aggregated_data[key] = {
+            "direction": change,
+            "code_changes": set(),
+            "target_changes": set(),
+        }
+
+      if name in [
+          "glados",
+          "autocannon-ui",
+          "uptime-kuma",
+          "monconvertisseurco2",
+          "matrix",
+          "uptime",
+      ]:
+        for cc in [row[15], row[16], row[18], row[19]]:
+          if cc in categories and cc != "Other":
+            aggregated_data[key]["code_changes"].add(cc)
+        for tc in [row[12], row[13]]:
+          if tc in categories and tc != "Other":
+            aggregated_data[key]["target_changes"].add(tc)
+
+      elif name == "timeoff":
+        for cc in [row[16], row[17], row[19], row[20], row[22], row[23]]:
+          if cc in categories and cc != "Other":
+            aggregated_data[key]["code_changes"].add(cc)
+        for tc in [row[12], row[13], row[14]]:
+          if tc in categories and tc != "Other":
+            aggregated_data[key]["target_changes"].add(tc)
+
+  codechanged_map = {cat: {"increased": 0, "decreased": 0} for cat in categories}
+  target_map = {cat: {"increased": 0, "decreased": 0} for cat in categories}
+  
+  print(codechanged_map)
+
+  for key, content in aggregated_data.items():
+    dir = content["direction"]
+    for cc in content["code_changes"]:
+      codechanged_map[cc][dir] += 1
+    for tc in content["target_changes"]:
+      target_map[tc][dir] += 1
+
+  debug_data = {
+      str(k): {
+          "direction": v["direction"],
+          "code_changes": list(v["code_changes"]),
+          "target_changes": list(v["target_changes"]),
+      }
+      for k, v in aggregated_data.items()
+  }
+
+  output_file = "debug_output.json"
+  with open(output_file, "w", encoding="utf-8") as f:
+    json.dump(debug_data, f, indent=4, ensure_ascii=False)
+    flow_impact_target = {}
+    flow_target_code = {}
 
     for key, content in aggregated_data.items():
         if "Other" in content["code_changes"]:
             continue
-        
-        dir_val = "Increased" if content["direction"] == "increased" else "Decreased"
-        
+
+        dir_val = (
+            "Increased" if content["direction"] == "increased" else "Decreased"
+        )
         c_len = len(content["code_changes"])
         t_len = len(content["target_changes"])
-        
+
         if c_len == 0 or t_len == 0:
             continue
-            
+
         weight = 1.0 / (c_len * t_len)
-        
+
         for cc in content["code_changes"]:
             cc_node = f"Code: {cc}"
             for tc in content["target_changes"]:
                 tc_node = f"Target: {tc}"
-                
-                link_ct = (cc_node, tc_node)
-                flow_code_target[link_ct] = flow_code_target.get(link_ct, 0.0) + weight
-                
-                link_td = (tc_node, dir_val)
-                flow_target_dir[link_td] = flow_target_dir.get(link_td, 0.0) + weight
+
+                link_it = (dir_val, tc_node)
+                flow_impact_target[link_it] = flow_impact_target.get(link_it, 0.0) + weight
+
+                link_tc = (tc_node, cc_node)
+                flow_target_code[link_tc] = flow_target_code.get(link_tc, 0.0) + weight
+
+    code_total_weight = {}
+    code_ds_rs_weight = {}
+    code_us_ls_weight = {}
+
+    for (tc_node, cc_node), val in flow_target_code.items():
+        code_total_weight[cc_node] = code_total_weight.get(cc_node, 0.0) + val
+        
+        if "Downward Shift" in tc_node or "Rightward Shift" in tc_node:
+            code_ds_rs_weight[cc_node] = code_ds_rs_weight.get(cc_node, 0.0) + val
+        elif "Upward Shift" in tc_node or "Leftward Shift" in tc_node:
+            code_us_ls_weight[cc_node] = code_us_ls_weight.get(cc_node, 0.0) + val
+
+    code_dominant_color = {}
+    for cc_node, total_w in code_total_weight.items():
+        if total_w >= 1.0:
+            ds_rs_ratio = code_ds_rs_weight.get(cc_node, 0.0) / total_w
+            us_ls_ratio = code_us_ls_weight.get(cc_node, 0.0) / total_w
+            
+            if ds_rs_ratio >= 0.5:
+                code_dominant_color[cc_node] = "red"
+            elif us_ls_ratio >= 0.5:
+                code_dominant_color[cc_node] = "green"
+            else:
+                code_dominant_color[cc_node] = "gray"
+        else:
+            code_dominant_color[cc_node] = "gray"
 
     all_nodes_set = set()
-    for (src, tgt) in flow_code_target.keys():
+    for src, tgt in flow_impact_target.keys():
         all_nodes_set.add(src)
         all_nodes_set.add(tgt)
-    for (src, tgt) in flow_target_dir.keys():
+    for src, tgt in flow_target_code.keys():
         all_nodes_set.add(src)
         all_nodes_set.add(tgt)
 
     all_nodes = list(all_nodes_set)
     node_idx = {name: i for i, name in enumerate(all_nodes)}
 
-    sources = []
-    targets = []
-    values = []
+    sources, targets, values = [], [], []
 
-    for (src, tgt), val in flow_code_target.items():
+    for (src, tgt), val in flow_impact_target.items():
         sources.append(node_idx[src])
         targets.append(node_idx[tgt])
         values.append(val)
 
-    for (src, tgt), val in flow_target_dir.items():
+    for (src, tgt), val in flow_target_code.items():
         sources.append(node_idx[src])
         targets.append(node_idx[tgt])
         values.append(val)
@@ -151,83 +223,148 @@ def RQ3(path, name):
     for t, val in zip(targets, values):
         node_totals[t] += val
     for s, val in zip(sources, values):
-        if all_nodes[s].startswith("Code:"):
+        if all_nodes[s] in ["Increased", "Decreased"]:
             node_totals[s] += val
+
+    abbr_map = {
+        "Text Expansion": "TE",
+        "Text Contraction": "TC",
+        "Upward Shift": "US",
+        "Downward Shift": "DS",
+        "Leftward Shift": "LS",
+        "Rightward Shift": "RS",
+        "Height Expansion": "HE",
+        "Height Contraction": "HC",
+        "Width Expansion": "WE",
+        "Width Contraction": "WC",
+        "Component Removal": "CR",
+        "Component Addition": "CA",
+        "Other": "Other",
+    }
 
     labeled_nodes = []
     for i, name in enumerate(all_nodes):
         clean_name = name.replace("Code: ", "").replace("Target: ", "")
+        short_name = abbr_map.get(clean_name, clean_name)
+
         if node_totals[i] > 0:
             val = round(node_totals[i], 1)
             if val.is_integer():
                 val = int(val)
-            labeled_nodes.append(f"{clean_name} ({val})")
+            labeled_nodes.append(f"{short_name} ({val})")
         else:
-            labeled_nodes.append(clean_name)
-            
+            labeled_nodes.append(short_name)
+
     node_colors = []
     for name in all_nodes:
         if name.startswith("Code:"):
-            node_colors.append("#636EFA")  
+            node_colors.append("#636EFA")
         elif name.startswith("Target:"):
-            node_colors.append("#EF553B")  
-        elif "Increased" in name:
-            node_colors.append("#E11D48")  
-        elif "Decreased" in name:
-            node_colors.append("#11CAA0")  
+            node_colors.append("#EF553B")
+        elif name == "Increased":
+            node_colors.append("#E11D48")
+        elif name == "Decreased":
+            node_colors.append("#11CAA0")
         else:
-            node_colors.append("#AB63FA")  
-            
-    link_colors = []
-    for tgt_idx in targets:
-        tgt_name = all_nodes[tgt_idx]
-        if "Increased" in tgt_name or "Target: Downward Shift" in tgt_name or "Target: Rightward Shift" in tgt_name:
-            link_colors.append("rgba(225, 29, 72, 0.3)") 
-        elif "Decreased" in tgt_name or "Target: Upward Shift" in tgt_name or "Target: Leftward Shift" in tgt_name:
-            link_colors.append("rgba(17, 202, 160, 0.3)")
-        else:
-            link_colors.append("rgba(203, 213, 225, 0.4)")
-            
-    fig = go.Figure(data=[go.Sankey(
-        node=dict(
-            pad=15,
-            thickness=20,
-            line=dict(color="black", width=0.5),
-            label=labeled_nodes,  
-            color=node_colors
-        ),
-        link=dict(
-            source=sources,
-            target=targets,
-            value=values,
-            color=link_colors  
-        )
-    )])
+            node_colors.append("#AB63FA")
 
-    fig.update_layout(
-        font_size=24,
-        width=1300,  
-        margin=dict(l=5, r=5, t=50, b=20),
-        annotations=[
-            dict(
-                x=0.0, y=1.09, xref="paper", yref="paper",
-                text="<b>Code-changed UI Element</b>", 
-                showarrow=False, xanchor="left", font=dict(size=26)
-            ),
-            dict(
-                x=0.5, y=1.09, xref="paper", yref="paper",
-                text="<b>Target UI Elements</b>", 
-                showarrow=False, xanchor="center", font=dict(size=26)
-            ),
-            dict(
-                x=1.0, y=1.09, xref="paper", yref="paper",
-                text="<b>Impact</b>", 
-                showarrow=False, xanchor="right", font=dict(size=26)
+    link_colors = []
+    for src_idx, tgt_idx in zip(sources, targets):
+        src_name = all_nodes[src_idx]
+        tgt_name = all_nodes[tgt_idx]
+        
+        is_increased_to_ds_rs = (src_name == "Increased" and ("Downward Shift" in tgt_name or "Rightward Shift" in tgt_name))
+        is_decreased_to_us_ls = (src_name == "Decreased" and ("Upward Shift" in tgt_name or "Leftward Shift" in tgt_name))
+        
+        is_target_to_code = ("Target:" in src_name and "Code:" in tgt_name)
+        
+        color_applied = False
+        
+        if is_increased_to_ds_rs:
+            link_colors.append("rgba(225, 29, 72, 0.6)") 
+            color_applied = True
+        elif is_decreased_to_us_ls:
+            link_colors.append("rgba(17, 202, 160, 0.6)")
+            color_applied = True
+        elif is_target_to_code:
+            c_color = code_dominant_color.get(tgt_name, "gray")
+            
+            is_src_ds_rs = ("Downward Shift" in src_name or "Rightward Shift" in src_name)
+            is_src_us_ls = ("Upward Shift" in src_name or "Leftward Shift" in src_name)
+            
+            if c_color == "red" and is_src_ds_rs:
+                link_colors.append("rgba(225, 29, 72, 0.6)")
+                color_applied = True
+            elif c_color == "green" and is_src_us_ls:
+                link_colors.append("rgba(17, 202, 160, 0.6)")
+                color_applied = True
+            else:
+                link_colors.append("rgba(190, 190, 190, 0.4)")
+                color_applied = True
+                
+        if not color_applied:
+            link_colors.append("rgba(190, 190, 190, 0.4)")
+
+    fig = go.Figure(
+        data=[
+            go.Sankey(
+                node=dict(
+                    pad=15,
+                    thickness=20,
+                    line=dict(color="black", width=0.5),
+                    label=labeled_nodes,
+                    color=node_colors,
+                ),
+                link=dict(
+                    source=sources,
+                    target=targets,
+                    value=values,
+                    color=link_colors,
+                ),
             )
         ]
     )
+
+    fig.update_layout(
+        font_size=24,
+        width=800,
+        height=450, #基は400
+        margin=dict(l=5, r=5, t=50, b=20),
+        annotations=[
+            dict(
+                x=0.0,
+                y=1.09,
+                xref="paper",
+                yref="paper",
+                text="<b>Impact</b>",
+                showarrow=False,
+                xanchor="left",
+                font=dict(size=26),
+            ),
+            dict(
+                x=0.5,
+                y=1.09,
+                xref="paper",
+                yref="paper",
+                text="<b>Target</b>",
+                showarrow=False,
+                xanchor="center",
+                font=dict(size=26),
+            ),
+            dict(
+                x=1.0,
+                y=1.09,
+                xref="paper",
+                yref="paper",
+                text="<b>Code-changed</b>",
+                showarrow=False,
+                xanchor="right",
+                font=dict(size=26),
+            ),
+        ],
+    )
     fig.show()
-    #fig.write_image("sankey_diagram.pdf")
+    fig.write_image("sankey_diagram.pdf")
     
 
 
