@@ -1,4 +1,4 @@
-# ESEM 2026 Research Project
+# SANER 2027 Research Project
 This repository contains the research tools and datasets
 
 ## Repository Overview
@@ -105,8 +105,8 @@ To ensure the reproducibility of the environment, the following versions were us
 - **Docker**:  28.0.4 or higher (Tested on Docker Desktop with WSL2 backend)
 
 ## Note on Source Code
-This repository is provided as a research prototype associated with our ESEM 2026 submission. Please note the following regarding the current state of the implementation:
+This repository is provided as a research prototype associated with our SANER 2027 submission. Please note the following regarding the current state of the implementation:
 - **Language**: While the primary documentation and core logic are in English, some source code comments and log messages may still contain Japanese. We are progressively working on a full English translation.
 
 ## Note on Terminology (Data vs. Paper)
-You may notice that the raw logs and some output CSV files use older variable names. Please note that these correspond exactly to the metrics discussed in our ESEM 2026 paper. The terminology was refined for broader clarity after the data collection phase was completed.
+You may notice that the raw logs and some output CSV files use older variable names. Please note that these correspond exactly to the metrics discussed in our SANER 2027 paper. The terminology was refined for broader clarity after the data collection phase was completed.
