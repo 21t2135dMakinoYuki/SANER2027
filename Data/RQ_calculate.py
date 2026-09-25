@@ -100,10 +100,10 @@ def RQ3(paths, names):
         tc_list = [row[12], row[13], row[14]]
       else:
         continue
-    
+
       if "Other" in cc_list or "Other" in tc_list:
         continue
-    
+
       key = (name, test_name, commit_number, change)
 
       if key not in aggregated_data:
@@ -149,9 +149,9 @@ def RQ3(paths, names):
   output_file = "debug_output.json"
   with open(output_file, "w", encoding="utf-8") as f:
     json.dump(debug_data, f, indent=4, ensure_ascii=False)
-    
-    flow_impact_target = {}
-    flow_target_code = {}
+
+    flow_code_target = {}
+    flow_target_impact = {}
 
     for key, content in aggregated_data.items():
         if "Other" in content["code_changes"]:
@@ -173,54 +173,56 @@ def RQ3(paths, names):
             for tc in content["target_changes"]:
                 tc_node = f"Target: {tc}"
 
-                link_it = (dir_val, tc_node)
-                flow_impact_target[link_it] = flow_impact_target.get(link_it, 0.0) + weight
+                link_ct = (dir_val, cc_node, tc_node)
+                flow_code_target[link_ct] = flow_code_target.get(link_ct, 0.0) + weight
 
-                link_tc = (dir_val, tc_node, cc_node)
-                flow_target_code[link_tc] = flow_target_code.get(link_tc, 0.0) + weight
+                link_ti = (dir_val, tc_node)
+                flow_target_impact[link_ti] = flow_target_impact.get(link_ti, 0.0) + weight
 
     all_nodes_set = set()
-    for (dir_val, tc_node) in flow_impact_target.keys():
-        all_nodes_set.add(dir_val)
-        all_nodes_set.add(tc_node)
-    for (dir_val, tc_node, cc_node) in flow_target_code.keys():
-        all_nodes_set.add(tc_node)
+    for (dir_val, cc_node, tc_node) in flow_code_target.keys():
         all_nodes_set.add(cc_node)
+        all_nodes_set.add(tc_node)
+    for (dir_val, tc_node) in flow_target_impact.keys():
+        all_nodes_set.add(tc_node)
+        all_nodes_set.add(dir_val)
 
     all_nodes = list(all_nodes_set)
     node_idx = {name: i for i, name in enumerate(all_nodes)}
 
     sources, targets, values, link_colors = [], [], [], []
 
-    color_increased = "rgba(225, 29, 72, 0.45)"  
+    color_increased = "rgba(225, 29, 72, 0.45)"   
     color_decreased = "rgba(17, 202, 160, 0.45)"
 
-    for (dir_val, tc_node), val in flow_impact_target.items():
-        sources.append(node_idx[dir_val])
+    for (dir_val, cc_node, tc_node), val in flow_code_target.items():
+        sources.append(node_idx[cc_node])
         targets.append(node_idx[tc_node])
         values.append(val)
-        
+
         if dir_val == "Increased":
             link_colors.append(color_increased)
         else:
             link_colors.append(color_decreased)
 
-    for (dir_val, tc_node, cc_node), val in flow_target_code.items():
+    for (dir_val, tc_node), val in flow_target_impact.items():
         sources.append(node_idx[tc_node])
-        targets.append(node_idx[cc_node])
+        targets.append(node_idx[dir_val])
         values.append(val)
-        
+
         if dir_val == "Increased":
             link_colors.append(color_increased)
         else:
             link_colors.append(color_decreased)
 
-    node_totals = [0] * len(all_nodes)
-    for t, val in zip(targets, values):
-        node_totals[t] += val
-    for s, val in zip(sources, values):
-        if all_nodes[s] in ["Increased", "Decreased"]:
-            node_totals[s] += val
+    node_in = [0] * len(all_nodes)
+    node_out = [0] * len(all_nodes)
+    
+    for s, t, val in zip(sources, targets, values):
+        node_out[s] += val
+        node_in[t] += val
+        
+    node_totals = [max(i, o) for i, o in zip(node_in, node_out)]
 
     abbr_map = {
         "Text Expansion": "TE",
@@ -295,7 +297,7 @@ def RQ3(paths, names):
                 y=1.09,
                 xref="paper",
                 yref="paper",
-                text="<b>Impact</b>",
+                text="<b>Modified Element</b>",
                 showarrow=False,
                 xanchor="left",
                 font=dict(size=26),
@@ -305,7 +307,7 @@ def RQ3(paths, names):
                 y=1.09,
                 xref="paper",
                 yref="paper",
-                text="<b>Target</b>",
+                text="<b>Clicked Element</b>",
                 showarrow=False,
                 xanchor="center",
                 font=dict(size=26),
@@ -315,7 +317,7 @@ def RQ3(paths, names):
                 y=1.09,
                 xref="paper",
                 yref="paper",
-                text="<b>Code-changed</b>",
+                text="<b>Impact</b>",
                 showarrow=False,
                 xanchor="right",
                 font=dict(size=26),
