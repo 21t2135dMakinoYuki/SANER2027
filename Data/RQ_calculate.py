@@ -46,6 +46,7 @@ def RQ2(path):
     print(unique_all_result)
     
 
+
 def RQ3(paths, names):
   categories = [
       "Text Expansion",
@@ -72,27 +73,18 @@ def RQ3(paths, names):
     for row in ws.iter_rows(values_only=True):
       test_name = row[0]
       effort = row[1]
-      raw_commit = row[2]
+      raw_commit = row[2]  
       change = row[6]
       UI_change_only = row[11]
 
       if UI_change_only == 0 or effort != "cursor_travel_distance":
         continue
-    
+
       if raw_commit is not None:
         commit_number = str(raw_commit).split("-")[0].strip()
       else:
         commit_number = ""
         
-      key = (name, commit_number, change)
-
-      if key not in aggregated_data:
-        aggregated_data[key] = {
-            "direction": change,
-            "code_changes": set(),
-            "target_changes": set(),
-        }
-
       if name in [
           "glados",
           "autocannon-ui",
@@ -101,21 +93,38 @@ def RQ3(paths, names):
           "matrix",
           "uptime",
       ]:
-        for cc in [row[15], row[16], row[18], row[19]]:
-          if cc in categories and cc != "Other":
-            aggregated_data[key]["code_changes"].add(cc)
-        for tc in [row[12], row[13]]:
-          if tc in categories and tc != "Other":
-            aggregated_data[key]["target_changes"].add(tc)
-
+        cc_list = [row[15], row[16], row[18], row[19]]
+        tc_list = [row[12], row[13]]
       elif name == "timeoff":
-        for cc in [row[16], row[17], row[19], row[20], row[22], row[23]]:
-          if cc in categories and cc != "Other":
-            aggregated_data[key]["code_changes"].add(cc)
-        for tc in [row[12], row[13], row[14]]:
-          if tc in categories and tc != "Other":
-            aggregated_data[key]["target_changes"].add(tc)
+        cc_list = [row[16], row[17], row[19], row[20], row[22], row[23]]
+        tc_list = [row[12], row[13], row[14]]
+      else:
+        continue
+    
+      if "Other" in cc_list or "Other" in tc_list:
+        continue
+    
+      key = (name, test_name, commit_number, change)
 
+      if key not in aggregated_data:
+        aggregated_data[key] = {
+            "direction": change,
+            "code_changes": set(),
+            "target_changes": set(),
+        }
+
+      for cc in cc_list:
+        if cc in categories:
+          aggregated_data[key]["code_changes"].add(cc)
+          
+      for tc in tc_list:
+        if tc in categories:
+          aggregated_data[key]["target_changes"].add(tc)
+        
+  aggregated_data = {
+      k: v for k, v in aggregated_data.items() 
+      if v["code_changes"] and v["target_changes"]
+  }
   codechanged_map = {cat: {"increased": 0, "decreased": 0} for cat in categories}
   target_map = {cat: {"increased": 0, "decreased": 0} for cat in categories}
   
@@ -140,6 +149,7 @@ def RQ3(paths, names):
   output_file = "debug_output.json"
   with open(output_file, "w", encoding="utf-8") as f:
     json.dump(debug_data, f, indent=4, ensure_ascii=False)
+    
     flow_impact_target = {}
     flow_target_code = {}
 
@@ -166,58 +176,44 @@ def RQ3(paths, names):
                 link_it = (dir_val, tc_node)
                 flow_impact_target[link_it] = flow_impact_target.get(link_it, 0.0) + weight
 
-                link_tc = (tc_node, cc_node)
+                link_tc = (dir_val, tc_node, cc_node)
                 flow_target_code[link_tc] = flow_target_code.get(link_tc, 0.0) + weight
 
-    code_total_weight = {}
-    code_ds_rs_weight = {}
-    code_us_ls_weight = {}
-
-    for (tc_node, cc_node), val in flow_target_code.items():
-        code_total_weight[cc_node] = code_total_weight.get(cc_node, 0.0) + val
-        
-        if "Downward Shift" in tc_node or "Rightward Shift" in tc_node:
-            code_ds_rs_weight[cc_node] = code_ds_rs_weight.get(cc_node, 0.0) + val
-        elif "Upward Shift" in tc_node or "Leftward Shift" in tc_node:
-            code_us_ls_weight[cc_node] = code_us_ls_weight.get(cc_node, 0.0) + val
-
-    code_dominant_color = {}
-    for cc_node, total_w in code_total_weight.items():
-        if total_w >= 1.0:
-            ds_rs_ratio = code_ds_rs_weight.get(cc_node, 0.0) / total_w
-            us_ls_ratio = code_us_ls_weight.get(cc_node, 0.0) / total_w
-            
-            if ds_rs_ratio >= 0.5:
-                code_dominant_color[cc_node] = "red"
-            elif us_ls_ratio >= 0.5:
-                code_dominant_color[cc_node] = "green"
-            else:
-                code_dominant_color[cc_node] = "gray"
-        else:
-            code_dominant_color[cc_node] = "gray"
-
     all_nodes_set = set()
-    for src, tgt in flow_impact_target.keys():
-        all_nodes_set.add(src)
-        all_nodes_set.add(tgt)
-    for src, tgt in flow_target_code.keys():
-        all_nodes_set.add(src)
-        all_nodes_set.add(tgt)
+    for (dir_val, tc_node) in flow_impact_target.keys():
+        all_nodes_set.add(dir_val)
+        all_nodes_set.add(tc_node)
+    for (dir_val, tc_node, cc_node) in flow_target_code.keys():
+        all_nodes_set.add(tc_node)
+        all_nodes_set.add(cc_node)
 
     all_nodes = list(all_nodes_set)
     node_idx = {name: i for i, name in enumerate(all_nodes)}
 
-    sources, targets, values = [], [], []
+    sources, targets, values, link_colors = [], [], [], []
 
-    for (src, tgt), val in flow_impact_target.items():
-        sources.append(node_idx[src])
-        targets.append(node_idx[tgt])
-        values.append(val)
+    color_increased = "rgba(225, 29, 72, 0.45)"  
+    color_decreased = "rgba(17, 202, 160, 0.45)"
 
-    for (src, tgt), val in flow_target_code.items():
-        sources.append(node_idx[src])
-        targets.append(node_idx[tgt])
+    for (dir_val, tc_node), val in flow_impact_target.items():
+        sources.append(node_idx[dir_val])
+        targets.append(node_idx[tc_node])
         values.append(val)
+        
+        if dir_val == "Increased":
+            link_colors.append(color_increased)
+        else:
+            link_colors.append(color_decreased)
+
+    for (dir_val, tc_node, cc_node), val in flow_target_code.items():
+        sources.append(node_idx[tc_node])
+        targets.append(node_idx[cc_node])
+        values.append(val)
+        
+        if dir_val == "Increased":
+            link_colors.append(color_increased)
+        else:
+            link_colors.append(color_decreased)
 
     node_totals = [0] * len(all_nodes)
     for t, val in zip(targets, values):
@@ -268,43 +264,6 @@ def RQ3(paths, names):
         else:
             node_colors.append("#AB63FA")
 
-    link_colors = []
-    for src_idx, tgt_idx in zip(sources, targets):
-        src_name = all_nodes[src_idx]
-        tgt_name = all_nodes[tgt_idx]
-        
-        is_increased_to_ds_rs = (src_name == "Increased" and ("Downward Shift" in tgt_name or "Rightward Shift" in tgt_name))
-        is_decreased_to_us_ls = (src_name == "Decreased" and ("Upward Shift" in tgt_name or "Leftward Shift" in tgt_name))
-        
-        is_target_to_code = ("Target:" in src_name and "Code:" in tgt_name)
-        
-        color_applied = False
-        
-        if is_increased_to_ds_rs:
-            link_colors.append("rgba(225, 29, 72, 0.6)") 
-            color_applied = True
-        elif is_decreased_to_us_ls:
-            link_colors.append("rgba(17, 202, 160, 0.6)")
-            color_applied = True
-        elif is_target_to_code:
-            c_color = code_dominant_color.get(tgt_name, "gray")
-            
-            is_src_ds_rs = ("Downward Shift" in src_name or "Rightward Shift" in src_name)
-            is_src_us_ls = ("Upward Shift" in src_name or "Leftward Shift" in src_name)
-            
-            if c_color == "red" and is_src_ds_rs:
-                link_colors.append("rgba(225, 29, 72, 0.6)")
-                color_applied = True
-            elif c_color == "green" and is_src_us_ls:
-                link_colors.append("rgba(17, 202, 160, 0.6)")
-                color_applied = True
-            else:
-                link_colors.append("rgba(190, 190, 190, 0.4)")
-                color_applied = True
-                
-        if not color_applied:
-            link_colors.append("rgba(190, 190, 190, 0.4)")
-
     fig = go.Figure(
         data=[
             go.Sankey(
@@ -328,7 +287,7 @@ def RQ3(paths, names):
     fig.update_layout(
         font_size=24,
         width=800,
-        height=450, #基は400
+        height=450,
         margin=dict(l=5, r=5, t=50, b=20),
         annotations=[
             dict(
